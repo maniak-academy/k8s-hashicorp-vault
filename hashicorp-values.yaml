@@ -1,0 +1,82 @@
+global:
+  enabled: true
+  tlsDisable: true
+
+injector:
+  enabled: true
+
+server:
+  image:
+    repository: "hashicorp/vault-enterprise"
+    tag: "1.19.0-ent"
+  
+  enterpriseLicense:
+    enabled: true
+    secretName: "vault-license"
+    secretKey: "license"
+  
+  extraVolumes:
+    - type: secret
+      name: vault-license
+      path: /vault/license
+  
+  ha:
+    enabled: true
+    replicas: 3
+    raft:
+      enabled: true
+      setNodeId: true
+      
+    config: |
+      ui = true
+      disable_mlock = true
+      
+      license_path = "/vault/license/license"
+      
+      listener "tcp" {
+        address = "[::]:8200"
+        tls_disable = true
+        cluster_address = "[::]:8201"
+      }
+      
+      storage "raft" {
+        path = "/vault/data"
+        retry_join {
+          leader_api_addr = "http://vault-0.vault-internal:8200"
+        }
+        retry_join {
+          leader_api_addr = "http://vault-1.vault-internal:8200"
+        }
+        retry_join {
+          leader_api_addr = "http://vault-2.vault-internal:8200"
+        }
+      }
+
+  dataStorage:
+    enabled: true
+    storageClass: "longhorn"
+    size: "10Gi"
+
+ui:
+  enabled: true
+  serviceType: "ClusterIP"
+  publishNotReadyAddresses: true
+  activeVaultPodOnly: false
+  externalPort: 8200
+  targetPort: 8200
+
+csi:
+  enabled: false
+
+# Vault UI Ingress
+ingress:
+  enabled: true
+  ingressClassName: nginx
+  pathType: Prefix
+  annotations:
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+  hosts:
+    - host: vault.maniak.lab
+      paths:
+        - / 

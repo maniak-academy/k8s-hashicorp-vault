@@ -35,3 +35,34 @@ override.tf.json
 # Ignore CLI configuration files
 .terraformrc
 terraform.rc
+
+# Ignore vault credentials file - contains sensitive information
+vault-credentials.txt
+
+# Kubernetes generated files
+kubeconfig
+*.kubeconfig
+
+# Helm
+.helm/
+
+# Common OS and editor files
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*~
+.project
+.settings/
+
+# Sensitive data
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.truststore
+secrets/
+credentials/
